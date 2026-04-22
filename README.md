@@ -98,15 +98,14 @@ streamlit run app.py
 
 ## 📦 Dependencies
 
-\`\`\`
-streamlit
-tensorflow >= 2.10
-numpy
-pandas
-pillow
-matplotlib
-scikit-learn
-\`\`\`
+- streamlit
+- tensorflow >= 2.10
+- numpy
+- pandas
+- pillow
+- matplotlib
+- scikit-learn
+  
 
 ---
 
