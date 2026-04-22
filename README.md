@@ -146,7 +146,7 @@ We tested three deep learning architectures during development:
 |-------|--------------|---------------|--------|
 | CNN (baseline) | 67.26% | 14 hours | 0.77 GB |
 | DenseNet201 | 86.56% | 10 hours | 1.90 GB |
-| **U-Net (ours)** | **94.42%** | **5 hours** | **2.70 GB** |
+| **U-Net (ours)** | **94.42%** | **2 hours** | **2.70 GB** |
 
 U-Net won on both accuracy and training efficiency — faster to train, significantly more accurate.
 
@@ -263,7 +263,7 @@ Then open `http://localhost:8501` in your browser.
 
 Model files are hosted on Google Drive:
 
-👉 **[Download Models — Google Drive](#)** ← *(add your link here)*
+👉 **[Download Models — Google Drive](#)** ← *(https://drive.google.com/drive/folders/18guFp51rYuHGRm4j1sXKn2-zqnH1fDu4?usp=drive_link)*
 
 After downloading, place them here:
 ```
@@ -315,7 +315,7 @@ EfficientNetB0 achieves comparable accuracy with dramatically fewer parameters a
 
 | Component | Spec |
 |-----------|------|
-| Processor | Core i5, 2.50 GHz |
+| Processor | Core i7, 2.30 GHz |
 | Training Environment | Google Colab (T4 GPU) |
 | Language | Python 3.10 |
 | Framework | TensorFlow / Keras |
