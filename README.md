@@ -7,7 +7,7 @@
 
 ## 👋 What Is This?
 
-Hey! Welcome to **SkinScan AI** — a deep learning powered web application that helps identify and analyze skin lesions from dermoscopy images.
+Hey! Welcome to my final year project **Machine Learning Based Skin Cancer Detection**, a deep learning powered web application that helps identify and analyze skin lesions from dermoscopy images.
 
 This project was born out of a simple but important question: *what if AI could help catch skin cancer before it's too late?* In Pakistan alone, Melanoma is the third most common skin cancer, and access to dermatologists is nowhere near equal across the country. This tool is a step toward bridging that gap.
 
