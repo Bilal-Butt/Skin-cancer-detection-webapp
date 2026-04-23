@@ -20,7 +20,7 @@ You upload a dermoscopy image, and the app does two things in seconds:
 
 ## 🎯 The Problem We're Solving
 
-Traditional manual examination of skin lesions is time-consuming and prone to human error. Delayed or inaccurate diagnoses can be the difference between life and death — especially for aggressive cancers like Melanoma, which spreads rapidly if not caught early.
+Traditional manual examination of skin lesions is time-consuming and prone to human error. Delayed or inaccurate diagnoses can be the difference between life and death, especially for aggressive cancers like Melanoma, which spreads rapidly if not caught early.
 
 This project addresses that by building an automated, accurate, and efficient AI-assisted screening tool that:
 - Reduces human error in early-stage detection
