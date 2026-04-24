@@ -1,4 +1,4 @@
-# 🔬 SkinScan AI — Machine Learning Based Skin Cancer Detection
+# 🔬 Title - Machine Learning Based Skin Cancer Detection
 
 > *"Skin cancer accounts for 33.33% of all cancer cases globally. Early detection is not just helpful — it's life-saving."*
 > — World Health Organization
