@@ -9,19 +9,19 @@
  
 So this is **SkinScan AI** — my final year project, and honestly one of the things I'm most proud of building.
  
-The idea started from a pretty uncomfortable truth: skin cancer is one of the most common cancers in the world, and yet it's also one of the most *detectable* ones — if you catch it early enough. In Pakistan, Melanoma alone is the third most common skin cancer, and most people don't have easy access to a dermatologist. I kept thinking — *what if AI could help bridge that gap?* So I built this.
+The idea started from a pretty uncomfortable truth: skin cancer is one of the most common cancers in the world, and yet it's also one of the most *detectable* ones, if you catch it early enough. In Pakistan, Melanoma alone is the third most common skin cancer, and most people don't have easy access to a dermatologist. I kept thinking — *what if AI could help bridge that gap?* So I built this.
  
 You upload a dermoscopy image, and the app figures out two things for you in a matter of seconds:
  
 1. **Where exactly is the lesion?** — A U-Net model draws a pixel-level mask right around the suspicious area
 2. **What type of lesion is it?** — EfficientNetB3 classifies it into one of 7 known types and tells you whether it's low, moderate, or high risk
-It's not a replacement for a doctor. But it could absolutely be the thing that makes someone say *"okay, I should probably get this checked."*
+It's not a replacement for a doctor. But it could absolutely be the thing that makes someone say *"Okay, I should probably get this checked."*
  
 ---
  
 ## 😟 Why does this even matter?
  
-Manual examination of skin lesions is slow, expensive, and — even in expert hands — prone to error. For aggressive cancers like Melanoma, the difference between catching it at Stage 1 vs Stage 3 isn't just discomfort. It's survival.
+Manual examination of skin lesions is slow, expensive, and  even in expert hands,  prone to error. For aggressive cancers like Melanoma, the difference between catching it at Stage 1 vs Stage 3 isn't just discomfort. It's survival.
  
 This tool was built to:
 - Catch things earlier, when they're still treatable
@@ -127,12 +127,12 @@ Input (256×256×3)
 |--------|-------|
 | Train Accuracy | 95.88% |
 | Validation Accuracy | 95.19% |
-| Dice Coefficient | 89.05% |
+| Dice Coefficient | 87.05% |
 | Validation Dice | 88.28% |
 | Mean Accuracy | 94.42% |
 | F1 Score | 93.00% |
-| Precision | 90.52% |
-| Recall | 94.73% |
+| Precision | 94.52% |
+| Recall | 89.73% |
  
 Honestly, I was surprised by how well a "lightweight" U-Net performed. The skip connections really do make all the difference for preserving lesion boundary detail.
  
