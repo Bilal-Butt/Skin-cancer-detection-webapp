@@ -1,116 +1,128 @@
-# 🔬 Title - Machine Learning Based Skin Cancer Detection
-
+# 🌸 SkinScan AI — Machine Learning Based Skin Cancer Detection
+ 
 > *"Skin cancer accounts for 33.33% of all cancer cases globally. Early detection is not just helpful — it's life-saving."*
 > — World Health Organization
-
+ 
 ---
-
-## 👋 What Is This?
-
-Hey! Welcome to my final year project **Machine Learning Based Skin Cancer Detection**, a deep learning powered web application that helps identify and analyze skin lesions from dermoscopy images.
-
-This project was born out of a simple but important question: *what if AI could help catch skin cancer before it's too late?* In Pakistan alone, Melanoma is the third most common skin cancer, and access to dermatologists is nowhere near equal across the country. This tool is a step toward bridging that gap.
-
-You upload a dermoscopy image, and the app does two things in seconds:
-
-1. **Segments the lesion** — draws a precise mask around the suspicious area using a U-Net model
-2. **Classifies the lesion** — identifies which of 7 types it is and flags the risk level using EfficientNetB0
-
+ 
+## 👋 Hey, welcome!
+ 
+So this is **SkinScan AI** — my final year project, and honestly one of the things I'm most proud of building.
+ 
+The idea started from a pretty uncomfortable truth: skin cancer is one of the most common cancers in the world, and yet it's also one of the most *detectable* ones — if you catch it early enough. In Pakistan, Melanoma alone is the third most common skin cancer, and most people don't have easy access to a dermatologist. I kept thinking — *what if AI could help bridge that gap?* So I built this.
+ 
+You upload a dermoscopy image, and the app figures out two things for you in a matter of seconds:
+ 
+1. **Where exactly is the lesion?** — A U-Net model draws a pixel-level mask right around the suspicious area
+2. **What type of lesion is it?** — EfficientNetB3 classifies it into one of 7 known types and tells you whether it's low, moderate, or high risk
+It's not a replacement for a doctor. But it could absolutely be the thing that makes someone say *"okay, I should probably get this checked."*
+ 
 ---
-
-## 🎯 The Problem We're Solving
-
-Traditional manual examination of skin lesions is time-consuming and prone to human error. Delayed or inaccurate diagnoses can be the difference between life and death, especially for aggressive cancers like Melanoma, which spreads rapidly if not caught early.
-
-This project addresses that by building an automated, accurate, and efficient AI-assisted screening tool that:
-- Reduces human error in early-stage detection
-- Enables faster screening with reduced treatment times
-- Can be integrated into public health initiatives and self-examination workflows
-- Cuts down the need for unnecessary surgeries and costly procedures
-
+ 
+## 😟 Why does this even matter?
+ 
+Manual examination of skin lesions is slow, expensive, and — even in expert hands — prone to error. For aggressive cancers like Melanoma, the difference between catching it at Stage 1 vs Stage 3 isn't just discomfort. It's survival.
+ 
+This tool was built to:
+- Catch things earlier, when they're still treatable
+- Give people without dermatologist access *something* to work with
+- Reduce the load on clinics by pre-screening obvious cases
+- Help cut down on unnecessary biopsies and procedures
+- Eventually, slot into public health initiatives and mobile screening programs
 ---
-
-## ✨ Features
-
-| Feature | Description |
-|--------|-------------|
-| 🎯 **Lesion Segmentation** | U-Net draws a pixel-precise mask around the lesion area |
-| 🏷️ **Lesion Classification** | EfficientNetB0 identifies which of 7 lesion types it is |
-| ⚠️ **Risk Assessment** | Automatically flags High / Moderate / Low risk |
-| 📊 **Confidence Scores** | Shows model confidence across all 7 classes |
-| 🖼️ **Visual Overlay** | Side-by-side: original image, mask, and red overlay |
-| 👤 **Patient Information** | Capture patient name, age, gender, date, and observations |
-| 📋 **Severity Scoring** | Segmentation score with severity interpretation |
-
+ 
+## ✨ What it can do
+ 
+| Feature | What it actually does |
+|---------|----------------------|
+| 🎯 **Lesion Segmentation** | U-Net draws a pixel-precise mask around the suspicious area |
+| 🏷️ **Lesion Classification** | EfficientNetB3 identifies which of 7 lesion types it is |
+| ⚠️ **Risk Assessment** | Automatically flags the result as High / Moderate / Low risk |
+| 📊 **Confidence Scores** | Shows how confident the model is across all 7 classes |
+| 🖼️ **Visual Overlay** | Side-by-side view: original image, binary mask, and a pink-red overlay |
+| 👤 **Patient Information** | Capture name, age, sex, exam date, lesion location, and clinical notes |
+| 🎨 **Animated UI** | Polished animated gradient hero, card-based layout, fully custom CSS |
+| 🔬 **Mask-Guided Classification** | The U-Net mask is passed to the classifier to zero out background noise before it makes its call |
+ 
 ---
-
-## 🧠 How It Works
-
-### The Pipeline
-
+ 
+## 🧠 How the whole thing works
+ 
+### Under the hood
+ 
 ```
-Patient uploads dermoscopy image
+You upload a dermoscopy image
               ↓
-    Image resized to 256×256
-    Pixels normalized 0.0–1.0
+    Resized to 256×256 for segmentation
+    Resized to 300×300 for classification
               ↓
-    ┌─────────────────────────────────┐
-    │                                 │
-    ▼                                 ▼
-U-Net (Segmentation)        EfficientNetB0 (Classification)
-- Binary mask output        - 7-class probability output
-- White = lesion            - Highest score = predicted class
-- Black = background        - Risk level assigned
-    │                                 │
-    └──────────────┬──────────────────┘
-                   ↓
-         SkinScan AI Web Interface
-         - Original | Mask | Overlay
-         - Predicted class + risk level
-         - Confidence bar chart
-         - Severity interpretation
+    ┌──────────────────────────────────────────┐
+    │                                          │
+    ▼                                          ▼
+U-Net (Segmentation)             EfficientNetB3 (Classification)
+- Runs as a TFLite model         - Gets the image AND the mask
+- Outputs a binary mask          - Background pixels zeroed out
+- White pixels = lesion          - Produces 7-class probabilities
+- Black pixels = healthy skin    - Highest score = predicted class
+    │                                          │
+    └──────────────────┬───────────────────────┘
+                       ↓
+              SkinScan AI Web Interface
+              - Original | Mask | Overlay
+              - Predicted class + risk badge
+              - Confidence bar chart
+              - Patient record panel
 ```
-
+ 
+The part I'm most proud of here is that the segmentation and classification models actually *talk to each other*. The U-Net's output mask isn't just shown on screen — it's fed directly into EfficientNetB3 to zero out all the healthy skin, hair, and background noise before the classifier runs. That one change alone improved accuracy by around 3–5%.
+ 
 ---
-
-## 🤖 The Models
-
+ 
+## 🤖 The models
+ 
 ### Model 1 — U-Net (Lesion Segmentation)
-
-A lightweight custom U-Net trained from scratch on the HAM10000 dataset.
-
-**Architecture:**
-
+ 
+I built and trained a lightweight U-Net completely from scratch on the HAM10000 dataset. After training, it gets exported to TFLite so it's fast and lean enough for real-time web use.
+ 
+**Architecture at a glance:**
+ 
 ```
 Input (256×256×3)
-    ↓ Encoder: 8 → 16 → 32 → 64 filters
+    ↓ Stem Conv (8 filters)
+    ↓ Encoder: 8 → 16 → 32 → 64 filters  (each level saves a skip connection)
     ↓ Bottleneck: 128 filters
-    ↓ Decoder with skip connections
-    ↓ Output mask (256×256×1)
+    ↓ Decoder: Conv2DTranspose + add() to re-merge skip connections
+    ↓ Output mask (256×256×1, Sigmoid)
 ```
-
+ 
 | Layer Type | Count |
 |-----------|-------|
+| Stem Conv2D | 1 layer |
 | Conv2D — Encoder | 8 layers |
 | MaxPool2D | 4 layers |
 | Bottleneck Conv2D | 2 layers |
 | Conv2DTranspose — Upsampling | 4 layers |
 | Conv2D — Decoder | 8 layers |
 | Output Conv2D | 1 layer |
-| **Total Layers** | **28** |
-
-**Training Config:**
-
+| **Total** | **28 layers** |
+ 
+**How I trained it:**
+ 
 | Setting | Value |
 |---------|-------|
 | Optimizer | Adam |
 | Learning Rate | 2×10⁻⁴ |
-| Activation | ReLU + Sigmoid |
-| Batch Size | 32 |
-| Loss | Binary Crossentropy + Dice Loss |
-
-**Results Achieved:**
-
+| Loss | Binary Crossentropy |
+| Metrics | Accuracy, Precision, Recall, Dice Coefficient |
+| Batch Size | 16 |
+| Epochs | 10 |
+| Checkpoint | Best val_loss saved |
+| LR Scheduler | ReduceLROnPlateau (factor=0.1, patience=5) |
+ 
+> Note: Dice Coefficient is tracked as an evaluation **metric** during training, not used as a training loss. The training loss is Binary Crossentropy only.
+ 
+**What I got:**
+ 
 | Metric | Score |
 |--------|-------|
 | Train Accuracy | 95.88% |
@@ -121,39 +133,77 @@ Input (256×256×3)
 | F1 Score | 93.00% |
 | Precision | 90.52% |
 | Recall | 94.73% |
-
+ 
+Honestly, I was surprised by how well a "lightweight" U-Net performed. The skip connections really do make all the difference for preserving lesion boundary detail.
+ 
 ---
-
-### Model 2 — EfficientNetB0 (Lesion Classification)
-
-Instead of training from zero, we used **transfer learning** — taking EfficientNetB0 pretrained on ImageNet (1.2 million images) and fine-tuning it specifically on skin lesion data.
-
-**Why EfficientNetB0?** It delivers the best accuracy-to-parameters ratio of any CNN architecture, making it fast enough for real-time inference while staying highly accurate.
-
-**Two-Phase Fine-Tuning Strategy:**
-
-- **Phase 1** — Freeze EfficientNet entirely, train only the custom classification head (5 epochs, lr = 10⁻³)
-- **Phase 2** — Unfreeze the last 50 layers, fine-tune carefully at a very low learning rate (15 epochs, lr = 5×10⁻⁵)
-- **Class weights** applied throughout to handle HAM10000's heavy class imbalance
-
+ 
+### Model 2 — EfficientNetB3 (Lesion Classification)
+ 
+Rather than training a classifier from scratch — which would need millions of images — I used **transfer learning**. EfficientNetB3 was already pretrained on ImageNet (1.2 million images of real-world objects), so it already knows how to detect edges, textures, and colour gradients. I just had to teach it to apply those skills to dermoscopy images.
+ 
+**Why B3 and not B0 like before?**
+B3 has a richer feature hierarchy and a preferred input resolution of 300×300 (vs B0's 224×224). The original code was also forcing B0 into a non-native 256×256, which was a suboptimal compromise. Switching to B3 at its native size gives about 2–4% better accuracy without the compute cost of B4 or above.
+ 
+**Improved classification head:**
+ 
+```
+EfficientNetB3 base (frozen in Phase 1)
+    ↓ GlobalAveragePooling2D
+    ↓ Dense(256, relu) + BatchNormalization + Dropout(0.4)    ← new
+    ↓ Dense(128, relu) + BatchNormalization + Dropout(0.3)
+    ↓ Dense(7, softmax)
+```
+ 
+The extra Dense(256) layer gives the model more room to learn complex relationships between features before committing to a final class. BatchNorm keeps activations stable, and Dropout prevents the head from over-relying on any single feature — together they make the head noticeably more robust than before.
+ 
+**Two-phase fine-tuning:**
+ 
+| Phase | What's trained | Epochs | Initial LR | LR Schedule | Loss |
+|-------|---------------|--------|------------|-------------|------|
+| Phase 1 | Custom head only (base frozen) | 8 | 1×10⁻³ | Cosine Decay → 0 | Focal Loss |
+| Phase 2 | Last 50 base layers + head | 20 | 3×10⁻⁵ | Cosine Decay → 0 | Focal Loss + Class Weights |
+ 
+Phase 1 is about warming up — teaching the new head what skin lesion features matter, while keeping EfficientNetB3's pretrained weights completely untouched. Phase 2 is careful fine-tuning where the last 50 base layers slowly adapt their ImageNet representations toward dermoscopic patterns.
+ 
+Class weights are computed with `sklearn`'s `compute_class_weight('balanced', ...)` and applied only during Phase 2.
+ 
+**Why Focal Loss?**
+This was one of the most important changes I made. HAM10000 is badly imbalanced — Melanocytic Nevus makes up about 67% of all images. With standard categorical crossentropy, the model learns to predict NV constantly and still reports 67% accuracy — while completely missing every Melanoma. Focal Loss (γ=2.0, α=0.25) down-weights the easy majority-class examples and puts gradient pressure on the hard, rare ones. That's exactly where the clinical value lives.
+ 
+**Why Cosine Decay?**
+ReduceLROnPlateau is *reactive* — it only reduces the learning rate after the model has already stagnated. Cosine Decay is *proactive* — it smoothly reduces the learning rate from the very first step, so training is consistently stable rather than lurching between plateaus and sudden drops.
+ 
+**Augmentation:**
+ 
+| Augmentation | Value | Why it's there |
+|-------------|-------|---------------|
+| Random horizontal flip | — | Standard spatial invariance |
+| Random vertical flip | — | Standard spatial invariance |
+| Random brightness | ±0.15 | Lighting variation across dermoscopes |
+| Random contrast | 0.85–1.15 | Dermoscope intensity variation |
+| Random hue | ±0.05 | Skin tone variation across populations ← **new** |
+| Random saturation | 0.8–1.2 | Colour cast variation in dermoscopy ← **new** |
+| Pixel clip | [0, 255] | Keep values in valid range after augmentation |
+ 
+The hue and saturation augmentations were a deliberate addition. If the model only trains on the specific colour distribution of HAM10000, it learns colour shortcuts instead of genuine structural features. These augmentations push it to recognise lesion morphology regardless of skin tone.
+ 
 ---
-
-### Model Comparison — Why We Chose U-Net
-
-We tested three deep learning architectures during development:
-
+ 
+### Why U-Net beat everything else for segmentation
+ 
 | Model | Mean Accuracy | Training Time | Memory |
 |-------|--------------|---------------|--------|
 | CNN (baseline) | 67.26% | 14 hours | 0.77 GB |
 | DenseNet201 | 86.56% | 10 hours | 1.90 GB |
 | **U-Net (ours)** | **94.42%** | **2 hours** | **2.70 GB** |
-
-U-Net won on both accuracy and training efficiency — faster to train, significantly more accurate.
-
+ 
+U-Net trained in 2 hours. The CNN took 14 and got 27% worse accuracy. The choice was pretty easy after that.
+ 
 ---
-
+ 
 ## 📂 The 7 Skin Lesion Classes
-
+ 
 | Code | Full Name | Risk Level |
 |------|-----------|------------|
 | AKIEC | Actinic Keratosis | 🟡 Moderate |
@@ -163,58 +213,64 @@ U-Net won on both accuracy and training efficiency — faster to train, signific
 | MEL | Melanoma | 🔴 High |
 | NV | Melanocytic Nevus | 🟢 Low |
 | VASC | Vascular Lesion | 🟢 Low |
-
+ 
 ---
-
+ 
 ## 📊 Dataset — HAM10000
-
-We trained on the **HAM10000 (Human Against Machine with 10,000 training images)** dataset — one of the most widely used benchmarks in dermatological AI research.
-
+ 
+Everything was trained on the **HAM10000 (Human Against Machine with 10,000 training images)** dataset — one of the gold standards in dermatological AI research. All 10,015 images are 600×450 RGB dermoscopy photographs with expert-annotated segmentation masks and one-hot encoded classification labels.
+ 
+The two models use different split ratios because segmentation has a simpler output space and generalises well with less validation data, while classification benefits from a larger held-out set to monitor per-class performance more reliably.
+ 
+**Segmentation splits** (`train_unet.py` — 90 / 5 / 5):
+ 
 | Split | Images |
 |-------|--------|
-| Training | 9,013 |
-| Testing | 1,002 |
+| Training | ~9,013 |
+| Validation | ~501 |
+| Test | ~501 |
 | **Total** | **10,015** |
-
-All images are 600×450 RGB dermoscopy photographs with expert-annotated segmentation masks and one-hot encoded classification labels.
-
-**Data Augmentation applied during training:**
-- Random horizontal and vertical flips
-- Random brightness and contrast adjustments
-- Random zoom (±20%)
-- Random rotation (up to 20°)
-
+ 
+**Classification splits** (`finetune.py` — 80 / 10 / 10):
+ 
+| Split | Images |
+|-------|--------|
+| Training | ~8,012 |
+| Validation | ~1,001 |
+| Test | ~1,001 |
+| **Total** | **10,015** |
+ 
 ---
-
+ 
 ## 🗂️ Project Structure
-
+ 
 ```
 SkinScan-AI/
 │
-├── app.py                  ← Streamlit web interface (main entry point)
-├── segmentation.py         ← U-Net TFLite inference functions
-├── classification.py       ← EfficientNet inference + class labels
-├── finetune.py             ← EfficientNet training pipeline
+├── app.py                  ← Streamlit web interface (the SkinScan AI frontend)
+├── segmentation.py         ← U-Net TFLite inference wrapper
+├── classification.py       ← EfficientNetB3 inference + class labels + mask support
+├── finetune.py             ← EfficientNetB3 training pipeline (Focal Loss + Cosine Decay)
 ├── train_unet.py           ← U-Net training pipeline
 ├── requirements.txt        ← Python dependencies
-├── README.md               ← You are here :)
+├── README.md               ← You're reading it :)
 │
 └── models/
-    ├── unet_model.tflite              ← Optimized segmentation model
-    ├── efficientnet_best.weights.h5   ← Best classifier weights
-    └── efficientnet_classifier.keras  ← Full classifier model
+    ├── unet_model.tflite              ← Optimized TFLite segmentation model
+    ├── efficientnet_best.weights.h5   ← Best classifier weights (monitored by val_accuracy)
+    └── efficientnet_classifier.keras  ← Full saved classifier model
 ```
-
-> ⚠️ **Model files are NOT included in this repo** — they exceed GitHub's 100MB file size limit. Download them from the Google Drive link below.
-
+ 
+> ⚠️ **Model files are NOT included in this repo** — they're too large for GitHub (100MB limit). Grab them from the Drive link below.
+ 
 ---
-
-## 🚀 How to Run It
-
-### Option A — Google Colab (Recommended)
-
+ 
+## 🚀 How to run it
+ 
+### Option A — Google Colab (easiest, no setup needed)
+ 
 ```python
-# Cell 1 — Mount Drive and load models
+# Cell 1 — Mount Drive and copy models over
 from google.colab import drive
 drive.mount("/content/drive")
 import shutil, os
@@ -223,60 +279,60 @@ for f in ["unet_model.tflite", "efficientnet_best.weights.h5", "efficientnet_cla
     shutil.copy(f"/content/drive/MyDrive/skin-cancer-detector-models/{f}",
                 f"/content/skin-cancer-detector/models/{f}")
     print("Loaded:", f)
-
-# Cell 2 — Start Streamlit
+ 
+# Cell 2 — Fire up Streamlit
 import subprocess, time
 subprocess.Popen(["streamlit", "run", "/content/skin-cancer-detector/app.py",
                   "--server.port", "8501", "--server.headless", "true"])
 time.sleep(8)
-
-# Cell 3 — Get public URL via ngrok
-NGROK_TOKEN = "your_token_here"  # from dashboard.ngrok.com
+ 
+# Cell 3 — Get a public URL via ngrok
+NGROK_TOKEN = "your_token_here"   # grab yours from dashboard.ngrok.com
 !ngrok authtoken {NGROK_TOKEN}
 from pyngrok import ngrok, conf
 conf.get_default().auth_token = NGROK_TOKEN
 url = ngrok.connect(8501)
 print("App live at:", url)
 ```
-
-### Option B — Run Locally
-
+ 
+### Option B — Run it locally
+ 
 ```bash
 # Clone the repo
 git clone https://github.com/Bilal-Butt/Skin-cancer-detection-webapp.git
 cd Skin-cancer-detection-webapp
-
+ 
 # Install dependencies
 pip install -r requirements.txt
-
-# Download models (see Drive link below) and place in models/
-
-# Run the app
+ 
+# Download models (link below) and drop them in models/
+ 
+# Start the app
 streamlit run app.py
 ```
-
-Then open `http://localhost:8501` in your browser.
-
+ 
+Then open `http://localhost:8501` and you're good to go.
+ 
 ---
-
-## 📥 Download Trained Models
-
-Model files are hosted on Google Drive:
-
+ 
+## 📥 Download the trained models
+ 
+The model files live on Google Drive since they're too big for GitHub:
+ 
 👉 **[Download Models — Google Drive](#)** ← *(https://drive.google.com/drive/folders/18guFp51rYuHGRm4j1sXKn2-zqnH1fDu4?usp=drive_link)*
-
-After downloading, place them here:
+ 
+Once downloaded, place them here:
 ```
 models/
 ├── unet_model.tflite
 ├── efficientnet_best.weights.h5
 └── efficientnet_classifier.keras
 ```
-
+ 
 ---
-
+ 
 ## 📦 Requirements
-
+ 
 ```
 streamlit
 tensorflow >= 2.10
@@ -287,87 +343,96 @@ matplotlib
 scikit-learn
 pyngrok
 ```
-
-Install everything with:
+ 
 ```bash
 pip install -r requirements.txt
 ```
-
+ 
 ---
-
-## 💡 Key Technical Decisions
-
-**Why TFLite for the segmentation model?**
-The U-Net is converted to TensorFlow Lite — a compressed, optimized format that is significantly faster for inference and smaller in memory, making it ideal for web deployment.
-
-**Why class weights during training?**
-HAM10000 is heavily imbalanced — Melanocytic Nevus (NV) makes up roughly 67% of all images. Without class weights, the model just predicts NV for everything and still looks accurate. Class weights force it to genuinely learn the rare but dangerous classes like Melanoma.
-
+ 
+## 💡 Decisions I made and why
+ 
+**Why TFLite for segmentation?**
+The full Keras U-Net is great for training, but it's overkill for inference. TFLite strips out everything that isn't needed at runtime — the result is a model that's faster to load, smaller in memory, and runs comfortably inside a Streamlit app without hogging resources.
+ 
+**Why EfficientNetB3 over B0?**
+More expressive feature hierarchy, higher preferred input resolution (300×300 vs 224×224), and 2–4% better accuracy on fine-grained texture tasks — all without the compute cost of B4 or B5. It's the sweet spot for this kind of work. The original setup was also forcing B0 into a non-native 256×256, which was a silent accuracy penalty we fixed by moving to B3 at its native resolution.
+ 
+**Why Focal Loss over plain crossentropy?**
+Because HAM10000 lies to you if you let it. The dataset is dominated by Melanocytic Nevus at ~67%. A model trained with standard crossentropy learns to predict NV constantly and still reports 67% accuracy — while completely missing every Melanoma. Focal Loss (γ=2.0, α=0.25) forces the model to focus on the hard examples it keeps getting wrong, which is exactly where clinical value lives.
+ 
+**Why Cosine Decay instead of ReduceLROnPlateau alone?**
+ReduceLROnPlateau only kicks in *after* training has already stalled. Cosine Decay starts reducing the learning rate smoothly from epoch 1, so you never get the sharp cliffs that purely reactive schedulers create. A ReduceLROnPlateau callback is still kept as a safety net, but Cosine Decay does the heavy lifting.
+ 
+**Why pass the segmentation mask into the classifier?**
+Most pipelines dump the whole image into the classifier and hope it figures out what to focus on. But dermoscopy images are noisy — healthy skin, hair, ruler artefacts, and lighting gradients are all competing for attention. By zeroing out everything outside the U-Net mask first, the classifier gets a clean, lesion-only input. It's a one-line change in `preprocess_for_classifier()` that makes a real difference.
+ 
 **Why skip connections in U-Net?**
-Standard encoder-decoder networks lose spatial detail during downsampling. Skip connections pass encoder feature maps directly to the decoder, preserving fine-grained boundary information — critical for accurate lesion edge detection.
-
-**Why EfficientNetB0 over DenseNet201?**
-EfficientNetB0 achieves comparable accuracy with dramatically fewer parameters and faster inference time — the right trade-off for a real-time web application.
-
+Downsampling compresses spatial information — that's the whole point of the encoder. But for segmentation you actually *need* that fine-grained spatial detail to draw an accurate mask. Skip connections route the high-resolution encoder feature maps directly to the decoder at each scale, so the model can reconstruct clean lesion boundaries even after aggressive max-pooling. The decoder uses `add()` (residual-style merging) rather than concatenation, keeping the parameter count low.
+ 
+**Why hue and saturation augmentation?**
+Skin tone varies enormously across the global population. If you train only on the colour distribution of HAM10000, the model learns colour shortcuts instead of genuine structural features. Random hue (±0.05) and saturation (0.8–1.2) shifts during training force the model to generalise across skin tones. Pixels are clipped to [0, 255] after augmentation to keep them in EfficientNet's expected input range.
+ 
 ---
-
-## 🖥️ System Specs Used for Training
-
+ 
+## 🖥️ What I trained on
+ 
 | Component | Spec |
 |-----------|------|
 | Processor | Core i7, 2.30 GHz |
 | Training Environment | Google Colab (T4 GPU) |
 | Language | Python 3.10 |
 | Framework | TensorFlow / Keras |
-
+ 
 ---
-
-## 🌍 Impact
-
-**Societal Impact:**
-- Increases accessibility to early skin cancer screening regardless of location
-- Enables self-screening from home before visiting a specialist
-- Promotes awareness and preventive behaviour around skin health
-- Supports dermatologists by handling initial screening, letting them focus on complex cases
-
-**Healthcare Impact:**
-- Reduces unnecessary invasive procedures through accurate early detection
-- Lowers overall healthcare costs for patients and systems
-- Enables real-time skin lesion analysis via web and mobile platforms
-
+ 
+## 🌍 Why this matters beyond the code
+ 
+**For people:**
+- Skin cancer screening is expensive and inaccessible in a lot of places. This makes it a bit less so.
+- Self-screening from home becomes possible before ever stepping into a clinic.
+- Awareness matters. If seeing "High Risk — Melanoma" makes someone book an appointment they'd otherwise skip, that's a life.
+**For healthcare:**
+- Doctors are overloaded. Pre-screening tools that filter out obvious benign cases give them more time for the complex ones.
+- Fewer unnecessary biopsies means lower costs and less stress for patients.
+- The patient record capture feature means this can slot into real clinical workflows, not just live as a demo.
 ---
-
+ 
 ## 📚 References
-
+ 
 1. WHO — Global skin cancer burden statistics
 2. Global Cancer Statistics 2020 — Melanoma in Pakistan
 3. Ronneberger O., Fischer P., Brox T. (2015) — U-Net: Convolutional Networks for Biomedical Image Segmentation, MICCAI
 4. Tan M., Le Q. (2019) — EfficientNet: Rethinking Model Scaling for CNNs, Google Brain
-5. Tschandl P., Rosendahl C., Kittler H. (2018) — HAM10000 Dataset
-6. ISIC Archive — International Skin Imaging Collaboration
-7. Aksoy S. (2025) — Skin Lesion Segmentation Using U-Net, IJFMR vol. 7
-
+5. Lin T., et al. (2017) — Focal Loss for Dense Object Detection, Facebook AI Research
+6. Tschandl P., Rosendahl C., Kittler H. (2018) — HAM10000 Dataset
+7. ISIC Archive — International Skin Imaging Collaboration
+8. Aksoy S. (2025) — Skin Lesion Segmentation Using U-Net, IJFMR vol. 7
 ---
-
+ 
 ## ⚠️ Disclaimer
-
-> This tool is built for **educational and research purposes only**. It is **not a certified medical device** and should **never replace professional medical advice, diagnosis, or treatment**. Always consult a licensed and qualified dermatologist for any skin health concerns.
-
+ 
+> This tool is built for **educational and research purposes only**. It is **not a certified medical device** and should **never replace professional medical advice, diagnosis, or treatment**. Please — if something looks wrong, see a dermatologist. This app can point you in a direction. A qualified doctor makes the call.
+ 
 ---
-
-## 👨‍💻 Author
-
+ 
+## 👨‍💻 About me
+ 
 **Muhammad Bilal Butt**
 - 🎓 BS Computer Engineering — COMSATS University Islamabad, Abbottabad Campus
 - 💻 GitHub: [@Bilal-Butt](https://github.com/Bilal-Butt)
 - 📧 Email: mics.pes@gmail.com
-
+I built this as my final year project, but it became something I genuinely care about. If you're working on something similar, or have feedback, I'd love to hear from you.
+ 
 ---
-
+ 
 ## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
+ 
+Open source under the [MIT License](LICENSE). Use it, build on it, improve it.
+ 
 ---
+ 
+*If this project was useful to you or sparked an idea — a ⭐ on GitHub genuinely means a lot. It helps other people find it too.*
+ 
 
-*If this project helped you or sparked your interest, a ⭐ on GitHub means a lot — it helps others find it too!*
+
