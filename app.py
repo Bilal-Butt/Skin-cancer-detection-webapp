@@ -8,10 +8,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import streamlit as st
 from PIL import Image
-import tensorflow as tf
 from datetime import date
 
-from segmentation import run_segmentation
+# classification.py no longer sets a precision policy at import time, so the
+# default float32 is used everywhere. Inference is safe on CPU and GPU alike.
+from segmentation import run_segmentation, load_segmentation_model
 from classification import build_classifier, run_classification
 
 # ── Page config ───────────────────────────────────────────────────────────────
@@ -146,24 +147,41 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 st.markdown("""
 <div class="hero">
     <h1>🌸 SkinScan AI</h1>
-    <p>AI-powered skin lesion segmentation &amp; classification &nbsp;·&nbsp; HAM10000 &nbsp;·&nbsp; EfficientNetB0</p>
+    <p>AI-powered skin lesion segmentation &amp; classification &nbsp;·&nbsp; HAM10000 &nbsp;·&nbsp; EfficientNetB3</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Load models ───────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_models():
-    base = os.path.dirname(os.path.abspath(__file__))
-    interpreter = tf.lite.Interpreter(
-        model_path=os.path.join(base, "models", "unet_model.tflite")
-    )
-    interpreter.allocate_tensors()
+    """
+    Load and cache both models once at startup. Reused across every upload —
+    no redundant disk reads per inference call.
+    """
+    base         = os.path.dirname(os.path.abspath(__file__))
+    unet_path    = os.path.join(base, "models", "unet_model.tflite")
+    weights_path = os.path.join(base, "models", "efficientnet_best.weights.h5")
+
+    for path, name in [(unet_path, "unet_model.tflite"),
+                       (weights_path, "efficientnet_best.weights.h5")]:
+        if not os.path.isfile(path):
+            st.error(
+                f"❌ Model file not found: **{name}**\n\n"
+                "Place trained model files in the `models/` folder next to "
+                "`app.py`. Run `train_unet.py` and `finetune.py` to generate them."
+            )
+            st.stop()
+
+    interpreter   = load_segmentation_model(unet_path)
     classifier, _ = build_classifier()
-    classifier.load_weights(
-        os.path.join(base, "models", "efficientnet_best.weights.h5")
+    classifier.load_weights(weights_path)
+    classifier.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
     )
-    classifier.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     return interpreter, classifier
+
 
 with st.spinner("Loading AI models..."):
     interpreter, classifier = load_models()
@@ -174,8 +192,8 @@ left_col, right_col = st.columns([1, 1.65], gap="large")
 # ── LEFT: Patient info + Upload ───────────────────────────────────────────────
 with left_col:
 
-    # Patient info card
-    st.markdown('<div class="card"><div class="card-title">👤 Patient Information</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">👤 Patient Information</div>',
+                unsafe_allow_html=True)
 
     patient_name = st.text_input("Full Name", placeholder="e.g. Jane Smith")
 
@@ -195,11 +213,13 @@ with left_col:
             "Thigh", "Lower leg", "Foot", "Other"
         ])
 
-    patient_notes = st.text_area("Clinical Notes", placeholder="Any relevant observations...", height=90)
+    patient_notes = st.text_area("Clinical Notes",
+                                 placeholder="Any relevant observations...",
+                                 height=90)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Upload card
-    st.markdown('<div class="card"><div class="card-title">🖼️ Upload Dermoscopy Image</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">🖼️ Upload Dermoscopy Image</div>',
+                unsafe_allow_html=True)
     uploaded_file = st.file_uploader(
         "Drag and drop or click to browse",
         type=["jpg", "jpeg", "png"]
@@ -225,24 +245,35 @@ with right_col:
         """, unsafe_allow_html=True)
 
     else:
-        image = Image.open(uploaded_file).convert("RGB")
+        try:
+            image = Image.open(uploaded_file).convert("RGB")
+        except Exception as e:
+            st.error(f"❌ Could not open image: {e}")
+            st.stop()
 
+        # ── Step 1: Segmentation — pass the cached interpreter ────────────────
         with st.spinner("Running AI segmentation..."):
-            base = os.path.dirname(os.path.abspath(__file__))
-            mask = run_segmentation(
-                image,
-                model_path=os.path.join(base, "models", "unet_model.tflite")
-            )
+            try:
+                mask = run_segmentation(image, interpreter=interpreter)
+            except Exception as e:
+                st.error(f"❌ Segmentation failed: {e}")
+                st.stop()
 
+        # ── Step 2: Classification ────────────────────────────────────────────
         with st.spinner("Classifying lesion..."):
-            results = run_classification(image, classifier)
+            try:
+                results = run_classification(image, classifier, mask=mask)
+            except Exception as e:
+                st.error(f"❌ Classification failed: {e}")
+                st.stop()
 
         predicted_class = results["predicted_class"]
         risk_level      = results["risk_level"]
         confidence      = results["confidence"]
 
         # ── Visuals ───────────────────────────────────────────────────────────
-        st.markdown('<div class="card"><div class="card-title">🖼️ Analysis Visuals</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card"><div class="card-title">🖼️ Analysis Visuals</div>',
+                    unsafe_allow_html=True)
         ic1, ic2, ic3 = st.columns(3)
 
         with ic1:
@@ -252,7 +283,8 @@ with right_col:
         with ic2:
             mask_img = Image.fromarray((mask * 255).astype(np.uint8))
             st.image(mask_img, use_container_width=True)
-            st.markdown('<div class="img-caption">Segmentation Mask</div>', unsafe_allow_html=True)
+            st.markdown('<div class="img-caption">Segmentation Mask</div>',
+                        unsafe_allow_html=True)
 
         with ic3:
             fig, ax = plt.subplots(figsize=(3, 3))
@@ -268,10 +300,13 @@ with right_col:
         st.markdown('</div>', unsafe_allow_html=True)
 
         # ── Diagnosis summary ─────────────────────────────────────────────────
-        risk_css   = {"Low": "risk-low", "Moderate": "risk-moderate", "High": "risk-high"}.get(risk_level, "risk-low")
-        risk_emoji = {"Low": "🟢", "Moderate": "🟡", "High": "🔴"}.get(risk_level, "⚪")
+        risk_css   = {"Low": "risk-low", "Moderate": "risk-moderate",
+                      "High": "risk-high"}.get(risk_level, "risk-low")
+        risk_emoji = {"Low": "🟢", "Moderate": "🟡",
+                      "High": "🔴"}.get(risk_level, "⚪")
 
-        st.markdown('<div class="card"><div class="card-title">📊 Diagnosis Summary</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card"><div class="card-title">📊 Diagnosis Summary</div>',
+                    unsafe_allow_html=True)
         mc1, mc2, mc3 = st.columns(3)
 
         with mc1:
@@ -301,11 +336,14 @@ with right_col:
 
         # ── Patient record summary ─────────────────────────────────────────────
         if patient_name:
-            st.markdown('<div class="card"><div class="card-title">🗒️ Patient Record</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card"><div class="card-title">🗒️ Patient Record</div>',
+                        unsafe_allow_html=True)
             pr1, pr2, pr3 = st.columns(3)
             pr1.markdown(f"**Name**<br>{patient_name}", unsafe_allow_html=True)
-            pr2.markdown(f"**Age / Sex**<br>{patient_age} / {patient_sex}", unsafe_allow_html=True)
-            pr3.markdown(f"**Exam Date**<br>{exam_date.strftime('%d %b %Y')}", unsafe_allow_html=True)
+            pr2.markdown(f"**Age / Sex**<br>{patient_age} / {patient_sex}",
+                         unsafe_allow_html=True)
+            pr3.markdown(f"**Exam Date**<br>{exam_date.strftime('%d %b %Y')}",
+                         unsafe_allow_html=True)
             if lesion_location != "Select":
                 st.markdown(f"**Lesion Location:** {lesion_location}")
             if patient_notes:
@@ -313,7 +351,8 @@ with right_col:
             st.markdown('</div>', unsafe_allow_html=True)
 
         # ── Confidence chart ──────────────────────────────────────────────────
-        st.markdown('<div class="card"><div class="card-title">📈 All Class Scores</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card"><div class="card-title">📈 All Class Scores</div>',
+                    unsafe_allow_html=True)
 
         classes = list(results["all_scores"].keys())
         scores  = list(results["all_scores"].values())

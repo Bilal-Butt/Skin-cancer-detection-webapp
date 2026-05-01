@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+*.log
+streamlit.log
+kaggle.json
+Skin-cancer.json
+.env
+ham1000-segmentation-and-classification/
+*.zip
